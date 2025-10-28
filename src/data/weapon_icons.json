@@ -41,7 +41,9 @@
     "Silvershower Heartstrings",
     "Chain Breaker",
     "Astral Vultures Crimson Plumage",
-    "Flower-Wreathed Feathers"
+    "Flower-Wreathed Feathers",
+    "Sequence of Solitude",
+    "Snare Hook"
   ],
   "Catalyst": [
     "Apprentice's Notes",
@@ -84,9 +86,15 @@
     "Ring of Yaxche",
     "Surf's Up",
     "Ash-Graven Drinking Horn",
+    "Waveriding Whirl",
     "Starcaller's Watch",
     "Sunny Morning Sleep-In",
-    "Vivid Notions"
+    "Vivid Notions",
+    "Nightweaver's Looking Glass",
+    "Blackmarrow Lantern",
+    "Etherlight Spindlelute",
+    "Reliquary of Truth",
+    "Dawning Frost"
   ],
   "Claymore": [
     "Waster Greatsword",
@@ -127,7 +135,9 @@
     "Earth Shaker",
     "Fang of the Mountain King",
     "Fruitful Hook",
-    "A Thousand Blazing Suns"
+    "A Thousand Blazing Suns",
+    "Flame-Forged Insight",
+    "Master Key"
   ],
   "Polearm": [
     "Beginner's Protector",
@@ -166,7 +176,10 @@
     "Mountain-Bracing Bolt",
     "Tamayuratei no Ohanashi",
     "Symphonist of Scents",
-    "Fractured Halo"
+    "Fractured Halo",
+    "Bloodsoaked Ruins",
+    "Prospector's Shovel",
+    "Sacrificer's Staff"
   ],
   "Sword": [
     "Dull Blade",
@@ -215,6 +228,9 @@
     "Flute of Ezpitzal",
     "Peak Patrol Song",
     "Sturdy Bone",
-    "Azurelight"
+    "Azurelight",
+    "Calamity of Eshu",
+    "Serenity's Call",
+    "Moonweaver's Dawn"
   ]
 }
