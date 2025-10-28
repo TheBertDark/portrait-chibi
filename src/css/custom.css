@@ -90,3 +90,139 @@
   font-style:normal;
   font-display:swap;
 }
+
+/* Respeto por preferencias de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .portrait-icon-item:active {
+    transform: none;
+  }
+}
+
+/* Estilos de rareza para armas */
+.bg-rarityFirst {
+  --tw-bg-opacity: 1;
+  background-color: rgba(129,132,134,var(--tw-bg-opacity));
+  background-image: linear-gradient(135deg, 
+    rgba(149,152,154,0.9) 0%, 
+    rgba(129,132,134,0.8) 25%, 
+    rgba(109,112,114,0.7) 50%, 
+    rgba(129,132,134,0.6) 75%, 
+    rgba(89,92,94,0.5) 100%);
+  border-radius: 8px;
+  padding: 4px;
+  transition: var(--portrait-transition);
+}
+
+.bg-raritySecond {
+  --tw-bg-opacity: 1;
+  background-color: rgba(90,151,122,var(--tw-bg-opacity));
+  background-image: linear-gradient(135deg, 
+    rgba(110,171,142,0.9) 0%, 
+    rgba(90,151,122,0.8) 25%, 
+    rgba(70,131,102,0.7) 50%, 
+    rgba(90,151,122,0.6) 75%, 
+    rgba(50,111,82,0.5) 100%);
+  border-radius: 8px;
+  padding: 4px;
+  transition: var(--portrait-transition);
+}
+
+.bg-rarityThird {
+  --tw-bg-opacity: 1;
+  background-color: rgba(89,135,173,var(--tw-bg-opacity));
+  background-image: linear-gradient(135deg, 
+    rgba(110,155,193,0.9) 0%, 
+    rgba(89,135,173,0.8) 25%, 
+    rgba(69,115,153,0.7) 50%, 
+    rgba(89,135,173,0.6) 75%, 
+    rgba(69,115,153,0.5) 100%);
+  border-radius: 8px;
+  padding: 4px;
+  transition: var(--portrait-transition);
+}
+
+.bg-rarityFourth {
+  --tw-bg-opacity: 1;
+  background-color: rgba(148,112,187,var(--tw-bg-opacity));
+  background-image: linear-gradient(135deg, 
+    rgba(168,132,207,0.9) 0%, 
+    rgba(148,112,187,0.8) 25%, 
+    rgba(128,92,167,0.7) 50%, 
+    rgba(148,112,187,0.6) 75%, 
+    rgba(108,72,147,0.5) 100%);
+  border-radius: 8px;
+  padding: 4px;
+  transition: var(--portrait-transition);
+}
+
+.bg-rarityFifth {
+  --tw-bg-opacity: 1;
+  background-color: rgba(200,124,36,var(--tw-bg-opacity));
+  background-image: linear-gradient(135deg, 
+    rgba(220,144,56,0.9) 0%, 
+    rgba(200,124,36,0.8) 25%, 
+    rgba(180,104,16,0.7) 50%, 
+    rgba(200,124,36,0.6) 75%, 
+    rgba(160,84,16,0.5) 100%);
+  border-radius: 8px;
+  padding: 4px;
+  transition: var(--portrait-transition);
+}
+
+/* Efectos hover generales para todos los elementos seleccionables */
+.portrait-icon-hover {
+  transition: all 0.2s ease-in-out;
+  border-radius: 8px;
+}
+
+.portrait-icon-hover:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.2);
+  filter: brightness(1.1);
+}
+
+/* Efectos hover para las rarezas */
+.bg-rarityFirst:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(129,132,134,0.6), 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.bg-raritySecond:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(90,151,122,0.6), 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.bg-rarityThird:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(89,135,173,0.6), 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.bg-rarityFourth:hover {
+  background-image: linear-gradient(to bottom right, rgba(148,112,187,0.9), rgba(148,112,187,0.6));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(148,112,187,0.5), 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.bg-rarityFifth:hover {
+  background-image: linear-gradient(to bottom right, rgba(200,124,36,0.9), rgba(200,124,36,0.6));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(200,124,36,0.5), 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* Responsive adjustments para rareza */
+@media (max-width: 768px) {
+  .bg-rarityFirst
+  .bg-raritySecond
+  .bg-rarityThird,
+  .bg-rarityFourth,
+  .bg-rarityFifth {
+    padding: 3px;
+    border-radius: 6px;
+  }
+}

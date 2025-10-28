@@ -3,17 +3,24 @@ import React from "react"
 import { PortraitIcon } from '.'
 
 export default function CharSelector({ icons, onClick, onCtrlClick }: { icons: PortraitIcon[], onClick: (icon: PortraitIcon, multi: boolean, note: boolean) => void, onCtrlClick?: (icon: PortraitIcon) => void }) {
-  return <div>
+  return <div style={{
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "3px",
+    alignItems: "center"
+  }}>
     {icons.map(icon => {
-      const { name, path, elementalIcon } = icon
+      const { name, path, elementalIcon, rarityClass } = icon
 
       return <div key={name} style={({
         position: "relative",
-        display: "inline-block"
+        display: "inline-block",
+        margin: "2px"
       })}>
         <img alt={name} title={name}
           src={path}
           width={128} height={128}
+          className={`${rarityClass || 'portrait-icon-hover'}`}
           style={({
             cursor: "pointer"
           })}

@@ -22,6 +22,8 @@ export interface PortraitIcon {
   others?: PortraitIcon[]
   artifacts?: PortraitIcon[]
   weapon?: PortraitIcon
+  rarity?: string
+  rarityClass?: string
 }
 
 const elements = [{
@@ -112,13 +114,57 @@ export default function PortraitGenerator({
     }))
   }))
 
-  const iconsWeapons = Object.entries(weaponIcons).sort((a, b) => a[0].localeCompare(b[0])).map(([type, icons]) => ({
+  // Función para obtener la clase de rareza basada en el nombre del arma
+  const getWeaponRarity = (weaponName: string): string => {
+    for (const [type, rarities] of Object.entries(weaponIcons)) {
+      if (rarities['1_star']?.includes(weaponName)) return 'bg-rarityFirst'
+      if (rarities['2_star']?.includes(weaponName)) return 'bg-raritySecond'
+      if (rarities['3_star']?.includes(weaponName)) return 'bg-rarityThird'
+      if (rarities['4_star']?.includes(weaponName)) return 'bg-rarityFourth'
+      if (rarities['5_star']?.includes(weaponName)) return 'bg-rarityFifth'
+    }
+    return '' // Sin clase si no se encuentra
+  }
+
+  const iconsWeapons = Object.entries(weaponIcons).sort((a, b) => a[0].localeCompare(b[0])).map(([type, rarities]) => ({
     type,
-    icons: icons.map(name => ({
-      name,
-      path: `/portrait-chibi/img/weapons/icon_ascended/${filename(name)}.png`,
-      // full: true
-    }))
+    icons: [
+      // Armas de 5 estrellas (primero)
+      ...(rarities['5_star'] || []).map(name => ({
+        name,
+        path: `/portrait-chibi/img/weapons/icon_ascended/${filename(name)}.png`,
+        rarity: '5_star',
+        rarityClass: 'bg-rarityFifth'
+      })),
+      // Armas de 4 estrellas
+      ...(rarities['4_star'] || []).map(name => ({
+        name,
+        path: `/portrait-chibi/img/weapons/icon_ascended/${filename(name)}.png`,
+        rarity: '4_star',
+        rarityClass: 'bg-rarityFourth'
+      })),
+      // Armas de 3 estrellas
+      ...(rarities['3_star'] || []).map(name => ({
+        name,
+        path: `/portrait-chibi/img/weapons/icon_ascended/${filename(name)}.png`,
+        rarity: '3_star',
+        rarityClass: 'bg-rarityThird'
+      })),
+      // Armas de 2 estrellas
+      ...(rarities['2_star'] || []).map(name => ({
+        name,
+        path: `/portrait-chibi/img/weapons/icon_ascended/${filename(name)}.png`,
+        rarity: '2_star',
+        rarityClass: 'bg-raritySecond'
+      })),
+      // Armas de 1 estrella (último)
+      ...(rarities['1_star'] || []).map(name => ({
+        name,
+        path: `/portrait-chibi/img/weapons/icon_ascended/${filename(name)}.png`,
+        rarity: '1_star',
+        rarityClass: 'bg-rarityFirst'
+      }))
+    ]
   }))
 
   const allIcons: PortraitIcon[] = [

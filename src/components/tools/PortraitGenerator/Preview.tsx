@@ -5,7 +5,7 @@ async function loadCustomFont() {
   );
 
   await font.load(); // Espera a que la fuente se cargue
-  document.fonts.add(font); // Agrega la fuente al documento
+  (document.fonts as any).add(font); // Agrega la fuente al documento
 }
 
 import React, { useEffect, useRef, useState } from 'react'
@@ -26,7 +26,11 @@ const nameFont = "bold 17px \"Arial\""
 
 export default function Preview({ active, remove, background, portraitPadding, names }: { active: PortraitIcon[], remove: (i: number) => void, background: boolean, portraitPadding: boolean, names: boolean }) {
   const canvasRef = useRef(null as HTMLCanvasElement)
+  const containerRef = useRef(null as HTMLDivElement)
   const [hovering, setHovering] = useState(false)
+  const [isSticky, setIsSticky] = useState(false)
+  const [originalOffset, setOriginalOffset] = useState(0)
+  const [containerWidth, setContainerWidth] = useState(0)
 
   const effectiveFramePad = background ? framePad : 0
   const effectivePortraitPad = portraitPadding ? portraitPad : 0
@@ -109,55 +113,55 @@ export default function Preview({ active, remove, background, portraitPadding, n
               const grad = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeSize, badgeY + badgeSize);
               grad.addColorStop(0, 'rgba(30,30,40,0.93)');
               grad.addColorStop(0.6, 'rgba(50,50,70,0.85)');
-              grad.addColorStop(1, 'rgba(80,80,110,0.65)');
-              ctx.beginPath();
-              ctx.moveTo(badgeX + 12, badgeY);
-              ctx.lineTo(badgeX + badgeSize - 12, badgeY);
-              ctx.quadraticCurveTo(badgeX + badgeSize, badgeY, badgeX + badgeSize, badgeY + 12);
-              ctx.lineTo(badgeX + badgeSize, badgeY + badgeSize - 12);
-              ctx.quadraticCurveTo(badgeX + badgeSize, badgeY + badgeSize, badgeX + badgeSize - 12, badgeY + badgeSize);
-              ctx.lineTo(badgeX + 12, badgeY + badgeSize);
-              ctx.quadraticCurveTo(badgeX, badgeY + badgeSize, badgeX, badgeY + badgeSize - 12);
-              ctx.lineTo(badgeX, badgeY + 12);
-              ctx.quadraticCurveTo(badgeX, badgeY, badgeX + 12, badgeY);
-              ctx.closePath();
+              grad.addColorStop(1, 'rgba(20,20,30,0.88)');
               ctx.fillStyle = grad;
-              ctx.shadowColor = 'rgba(0,0,0,0.7)';
-              ctx.shadowBlur = 16;
-              ctx.fill();
+              ctx.shadowColor = 'rgba(0,0,0,0.4)';
+              ctx.shadowBlur = 8;
+              roundRect(ctx, badgeX, badgeY, badgeSize, badgeSize, 8);
               ctx.shadowBlur = 0;
               ctx.clip();
+              // Imagen
               ctx.drawImage(artImg, badgeX + 7, badgeY + 7, badgeSize - 14, badgeSize - 14);
               ctx.restore();
             }
           } else {
-            // Alinear sobre el eje de simetría (esquina sup. derecha a inf. izquierda)
-            // Calculamos el centro del grupo sobre la diagonal
-            const diagStep = badgeSize * 0.5;
-            const groupCenterX = x + portraitSize - badgeSize/2 + 4;
-            const groupCenterY = y + badgeSize/2 - 4;
-            const totalSpan = (icon.artifacts.length - 1) * diagStep;
+            // Múltiples artefactos: alineación diagonal con degradado direccional
+            const overlap = 16; // Solapamiento entre badges
+            const totalWidth = badgeSize + (icon.artifacts.length - 1) * (badgeSize - overlap);
+            baseX = x + portraitSize - totalWidth + 4;
+            baseY = y - 4;
+            
+            // Renderizar en orden normal para que los primeros aparezcan debajo
             for (let j = 0; j < icon.artifacts.length; j++) {
               const art = icon.artifacts[j];
               const artImg = await loadImage(art.path);
-              // Centrar el grupo sobre la diagonal
-              const badgeX = groupCenterX - (totalSpan/2) + j * diagStep - badgeSize/2;
-              const badgeY = groupCenterY - (totalSpan/2) + j * diagStep - badgeSize/2;
+              const badgeX = baseX + j * (badgeSize - overlap);
+              const badgeY = baseY + j * 8; // Ligero desplazamiento vertical
+              
               ctx.save();
-              // Primer badge: fondo normal. Siguientes: degradado transparente -> opaco en dirección del solapamiento
+              
+              // Sistema de degradado específico según la posición
               let grad;
               if (j === 0) {
+                // Primer badge: fondo normal
                 grad = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeSize, badgeY + badgeSize);
                 grad.addColorStop(0, 'rgba(30,30,40,0.93)');
                 grad.addColorStop(0.6, 'rgba(50,50,70,0.85)');
                 grad.addColorStop(1, 'rgba(80,80,110,0.65)');
               } else {
-                grad = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeSize, badgeY + badgeSize);
+                // Siguientes badges: degradado transparente -> opaco en dirección del solapamiento
+                grad = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeSize * 1.3, badgeY + badgeSize * 0.2);
                 grad.addColorStop(0, 'rgba(30,30,40,0.0)');
-                grad.addColorStop(0.15, 'rgba(30,30,40,0.0)');
+                grad.addColorStop(0.05, 'rgba(30,30,40,0.0)');
                 grad.addColorStop(0.25, 'rgba(50,50,70,0.85)');
                 grad.addColorStop(1, 'rgba(80,80,110,0.65)');
               }
+              
+              ctx.fillStyle = grad;
+              ctx.shadowColor = 'rgba(0,0,0,0.4)';
+              ctx.shadowBlur = 8;
+              
+              // Path personalizado con bordes redondeados usando quadraticCurveTo
               ctx.beginPath();
               ctx.moveTo(badgeX + 12, badgeY);
               ctx.lineTo(badgeX + badgeSize - 12, badgeY);
@@ -169,12 +173,12 @@ export default function Preview({ active, remove, background, portraitPadding, n
               ctx.lineTo(badgeX, badgeY + 12);
               ctx.quadraticCurveTo(badgeX, badgeY, badgeX + 12, badgeY);
               ctx.closePath();
-              ctx.fillStyle = grad;
-              ctx.shadowColor = 'rgba(0,0,0,0.7)';
-              ctx.shadowBlur = 16;
+              
               ctx.fill();
               ctx.shadowBlur = 0;
               ctx.clip();
+              
+              // Imagen del artefacto
               ctx.drawImage(artImg, badgeX + 7, badgeY + 7, badgeSize - 14, badgeSize - 14);
               ctx.restore();
             }
@@ -187,26 +191,29 @@ export default function Preview({ active, remove, background, portraitPadding, n
           const badgeX = x - 4;
           const badgeY = y + portraitSize - badgeSize + 4;
           ctx.save();
-          // Fondo badge degradado personalizado
+          // Fondo badge degradado normal (sin transparencia)
           const grad = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeSize, badgeY + badgeSize);
           grad.addColorStop(0, 'rgba(30,30,40,0.93)');
           grad.addColorStop(0.6, 'rgba(50,50,70,0.85)');
-          grad.addColorStop(1, 'rgba(80,80,110,0.65)');
-          ctx.beginPath();
-          ctx.moveTo(badgeX + 12, badgeY);
-          ctx.lineTo(badgeX + badgeSize - 12, badgeY);
-          ctx.quadraticCurveTo(badgeX + badgeSize, badgeY, badgeX + badgeSize, badgeY + 12);
-          ctx.lineTo(badgeX + badgeSize, badgeY + badgeSize - 12);
-          ctx.quadraticCurveTo(badgeX + badgeSize, badgeY + badgeSize, badgeX + badgeSize - 12, badgeY + badgeSize);
-          ctx.lineTo(badgeX + 12, badgeY + badgeSize);
-          ctx.quadraticCurveTo(badgeX, badgeY + badgeSize, badgeX, badgeY + badgeSize - 12);
-          ctx.lineTo(badgeX, badgeY + 12);
-          ctx.quadraticCurveTo(badgeX, badgeY, badgeX + 12, badgeY);
-          ctx.closePath();
+          grad.addColorStop(1, 'rgba(20,20,30,0.88)');
           ctx.fillStyle = grad;
-          ctx.shadowColor = 'rgba(0,0,0,0.7)';
-          ctx.shadowBlur = 16;
-          ctx.fill();
+          ctx.shadowColor = 'rgba(0,0,0,0.4)';
+          ctx.shadowBlur = 8;
+          roundRect(ctx, badgeX, badgeY, badgeSize, badgeSize, 8);
+          ctx.shadowBlur = 0;
+          
+          // Borde de rareza para armas
+          if (icon.weapon.rarity) {
+            const rarityColors = getRarityBorderColors(icon.weapon.rarity);
+            ctx.lineWidth = 3;
+            const borderGrad = ctx.createLinearGradient(badgeX, badgeY, badgeX + badgeSize, badgeY + badgeSize);
+            borderGrad.addColorStop(0, rarityColors.borderColor1);
+            borderGrad.addColorStop(0.5, rarityColors.borderColor2);
+            borderGrad.addColorStop(1, rarityColors.borderColor3);
+            ctx.strokeStyle = borderGrad;
+            ctx.stroke();
+          }
+          
           ctx.shadowBlur = 0;
           ctx.clip();
           // Imagen
@@ -222,30 +229,253 @@ export default function Preview({ active, remove, background, portraitPadding, n
     initializeCanvas();
   }, [active, background, effectivePortraitPad, names]);
 
-  return <div>
-    <canvas
-      ref={canvasRef}
-      onClick={(e) => {
-        const i = getIndex(effectiveFramePad, effectivePortraitPad, frameSize, e)
-        if (i >= 0 && i < active.length) remove(i)
-      }}
-      onMouseMove={(e) => {
-        const i = getIndex(effectiveFramePad, effectivePortraitPad, frameSize, e)
-        const shouldHover = i >= 0 && i < active.length
-        if (shouldHover !== hovering) setHovering(shouldHover)
-      }}
-      style={({
-        cursor: hovering ? "pointer" : "auto"
-      })}
-    /><br />
-    <a href="#" onClick={(e) => {
-      e.preventDefault()
+  // Estado para la transición gradual
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [transitionActive, setTransitionActive] = useState(false);
+  const [navbarHeight, setNavbarHeight] = useState(60); // Altura por defecto del navbar
+  const [lastScrollY, setLastScrollY] = useState(0); // Para detectar dirección de scroll
+  const [scrollDirection, setScrollDirection] = useState('down'); // 'up' o 'down'
 
-      const link = document.createElement('a');
-      link.download = `Portraits ${list}.png`;
-      link.href = canvasRef.current.toDataURL("image/png")
-      link.click()
-    }}>Download output as "DarkJake {list}.png"</a>
+  // Efecto para manejar el scroll y posicionamiento fijo con animación de barrido
+  useEffect(() => {
+    let ticking = false;
+    
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          if (!containerRef.current) {
+            ticking = false;
+            return;
+          }
+
+          // Detectar dirección de scroll
+          const currentScrollY = window.scrollY;
+          const newScrollDirection = currentScrollY > lastScrollY ? 'down' : 'up';
+          
+          if (newScrollDirection !== scrollDirection) {
+            setScrollDirection(newScrollDirection);
+          }
+          setLastScrollY(currentScrollY);
+
+          // Obtener altura real del navbar
+          const navbar = document.querySelector('.navbar');
+          const currentNavbarHeight = navbar ? navbar.getBoundingClientRect().height : 60;
+          if (currentNavbarHeight !== navbarHeight) {
+            setNavbarHeight(currentNavbarHeight);
+          }
+
+           const containerRect = containerRef.current.getBoundingClientRect();
+           const viewportHeight = window.innerHeight;
+           const transitionZone = Math.min(80, viewportHeight * 0.1); // Zona adaptativa (máx 80px o 10% del viewport)
+           const startTransition = currentNavbarHeight + 2; // Comienza cuando toca el navbar + 2px de anticipación
+           const endTransition = currentNavbarHeight - transitionZone; // Termina después de la zona de transición
+           
+           // Calcular progreso de la transición con detección mejorada
+           let progress = 0;
+           
+           // Verificar si el contenedor está en su posición original o por encima
+           const containerTop = containerRect.top;
+           
+           // Calcular el bottom del canvas (sin incluir el enlace de descarga)
+           const canvasBottom = containerTop + totalHeight;
+           
+           // NUEVA LÓGICA: Solo evaluar retorno a posición original durante scroll UP
+           if (containerTop <= startTransition) {
+             // El elemento ha alcanzado el navbar - activar sticky
+             
+             if (newScrollDirection === 'up') {
+               // Solo durante scroll UP: verificar si debe regresar a posición original
+               const hasPassedUp = canvasBottom <= currentNavbarHeight;
+               
+               if (hasPassedUp) {
+                 // El canvas ha pasado completamente hacia arriba - volver a estado normal
+                 progress = 0;
+               } else {
+                 // Mantener sticky o en transición
+                 if (containerTop >= endTransition) {
+                   // En zona de transición - calcular progreso suave
+                   progress = (startTransition - containerTop) / (transitionZone + 2);
+                   progress = Math.max(0, Math.min(1, progress));
+                   // Aplicar easing cúbico para máxima suavidad
+                   progress = progress < 0.5 
+                     ? 4 * progress * progress * progress 
+                     : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+                 } else {
+                   // Completamente sticky
+                   progress = 1;
+                 }
+               }
+             } else {
+               // Durante scroll DOWN: mantener sticky indefinidamente
+               if (containerTop >= endTransition) {
+                 // En zona de transición - calcular progreso suave
+                 progress = (startTransition - containerTop) / (transitionZone + 2);
+                 progress = Math.max(0, Math.min(1, progress));
+                 // Aplicar easing cúbico para máxima suavidad
+                 progress = progress < 0.5 
+                   ? 4 * progress * progress * progress 
+                   : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+               } else {
+                 // Completamente sticky - mantener indefinidamente durante scroll down
+                 progress = 1;
+               }
+             }
+           } else {
+             // El contenedor está por debajo del navbar - estado normal
+             progress = 0;
+           }
+
+           // Actualizar estados con debouncing mejorado
+           const newTransitionActive = progress > 0.001 && progress < 0.999;
+           const shouldBeSticky = progress >= 0.999;
+
+           if (Math.abs(scrollProgress - progress) > 0.0005) {
+             setScrollProgress(progress);
+           }
+           
+           if (newTransitionActive !== transitionActive) {
+             setTransitionActive(newTransitionActive);
+           }
+
+           if (shouldBeSticky !== isSticky) {
+             setIsSticky(shouldBeSticky);
+           }
+           
+           ticking = false;
+         });
+         ticking = true;
+       }
+     };
+
+    const handleResize = () => {
+      if (!containerRef.current) return;
+      
+      const containerRect = containerRef.current.getBoundingClientRect();
+      setContainerWidth(containerRect.width);
+      
+      // Actualizar offset original cuando no está sticky
+      if (!isSticky) {
+        setOriginalOffset(containerRef.current.offsetLeft);
+      }
+    };
+
+    // Configurar valores iniciales
+    handleResize();
+    
+    // Usar el scroll handler optimizado directamente
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isSticky]);
+
+  // Actualizar offset original cuando el componente se monta
+  useEffect(() => {
+    if (containerRef.current && !isSticky) {
+      setOriginalOffset(containerRef.current.offsetLeft);
+      setContainerWidth(containerRef.current.getBoundingClientRect().width);
+    }
+  }, [active, isSticky]);
+
+  // Función para obtener colores de rareza para el borde
+  function getRarityBorderColors(rarity: string) {
+    if (rarity === '1_star') {
+      return {
+        borderColor1: 'rgba(149,152,154,0.9)',
+        borderColor2: 'rgba(129,132,134,0.8)',
+        borderColor3: 'rgba(89,92,94,0.7)'
+      };
+    } else if (rarity === '2_star') {
+      return {
+        borderColor1: 'rgba(110,171,142,0.9)',
+        borderColor2: 'rgba(90,151,122,0.8)',
+        borderColor3: 'rgba(50,111,82,0.7)'
+      };
+    } else if (rarity === '3_star') {
+      return {
+        borderColor1: 'rgba(110,155,193,0.9)',
+        borderColor2: 'rgba(89,135,173,0.8)',
+        borderColor3: 'rgba(69,115,153,0.7)'
+      };
+    } else if (rarity === '4_star') {
+      return {
+        borderColor1: 'rgba(168,132,207,0.9)',
+        borderColor2: 'rgba(148,112,187,0.8)',
+        borderColor3: 'rgba(128,92,167,0.7)'
+      };
+    } else if (rarity === '5_star') {
+      return {
+        borderColor1: 'rgba(220,144,56,0.9)',
+        borderColor2: 'rgba(200,124,36,0.8)',
+        borderColor3: 'rgba(180,104,16,0.7)'
+      };
+    }
+    // Sin borde especial para armas sin rareza
+    return null;
+  }
+
+  return <div 
+    ref={containerRef}
+    style={{
+      position: 'relative',
+      // Mantener altura constante para evitar cambios de layout
+      minHeight: `${totalHeight}px`
+    }}
+  >
+    {/* Contenedor con altura fija para evitar colapso */}
+    <div style={{ 
+      minHeight: `${totalHeight + 15}px`, // totalHeight + más espacio para el enlace y margen inferior
+      position: 'relative',
+      marginBottom: '2rem' // Espacio adicional en la parte inferior
+    }}>
+      {/* Canvas con posicionamiento condicional */}
+      <canvas
+        ref={canvasRef}
+        onClick={(e) => {
+          const i = getIndex(effectiveFramePad, effectivePortraitPad, frameSize, e)
+          if (i >= 0 && i < active.length) remove(i)
+        }}
+        onMouseMove={(e) => {
+          const i = getIndex(effectiveFramePad, effectivePortraitPad, frameSize, e)
+          const shouldHover = i >= 0 && i < active.length
+          if (shouldHover !== hovering) setHovering(shouldHover)
+        }}
+        style={{
+          cursor: hovering ? "pointer" : "auto",
+          position: isSticky || transitionActive ? 'fixed' : 'static',
+          top: isSticky || transitionActive ? `${navbarHeight + (-scrollProgress * 20)}px` : 'auto',
+          left: isSticky || transitionActive ? `${originalOffset}px` : 'auto',
+          width: isSticky || transitionActive ? `${totalWidth}px` : 'auto',
+          zIndex: isSticky || transitionActive ? 999 : 'auto',
+          transform: transitionActive ? `translateY(${(1 - scrollProgress) * 20}px) scale(${0.98 + 0.02 * scrollProgress})` : 'none',
+          transition: transitionActive ? 'none' : 'all 0.3s cubic-bezier(0.23, 1, 0.32, 1)',
+          boxShadow: `0 ${4 * scrollProgress}px ${12 * scrollProgress}px rgba(0,0,0,${0.3 * scrollProgress})`,
+          borderRadius: `0 0 ${8 * scrollProgress}px ${8 * scrollProgress}px`,
+          opacity: 0.85 + 0.15 * scrollProgress
+        }}
+      />
+      
+      {/* Enlace de descarga con posición absoluta dentro del contenedor */}
+      <div style={{ 
+        position: 'absolute',
+        top: `${totalHeight + 24}px`, // Más espacio desde el canvas
+        left: 0,
+        width: '100%',
+        paddingBottom: '1rem' // Espacio adicional debajo del enlace
+      }}>
+        <a href="#" onClick={(e) => {
+          e.preventDefault()
+
+          const link = document.createElement('a');
+          link.download = `Portraits ${list}.png`;
+          link.href = canvasRef.current.toDataURL("image/png")
+          link.click()
+        }}>Download output as "DarkJake {list}.png"</a>
+      </div>
+    </div>
   </div>
 }
 
