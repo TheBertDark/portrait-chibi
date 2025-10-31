@@ -24,7 +24,7 @@ const noteHeight = 45
 const noteFont = "bold 25px \"Arial\""
 const nameFont = "bold 17px \"Arial\""
 
-export default function Preview({ active, remove, background, portraitPadding, names }: { active: PortraitIcon[], remove: (i: number) => void, background: boolean, portraitPadding: boolean, names: boolean }) {
+export default function Preview({ active, remove, background, portraitPadding, names, showRefinementNumbers }: { active: PortraitIcon[], remove: (i: number) => void, background: boolean, portraitPadding: boolean, names: boolean, showRefinementNumbers: boolean }) {
   const canvasRef = useRef(null as HTMLCanvasElement)
   const containerRef = useRef(null as HTMLDivElement)
   const [hovering, setHovering] = useState(false)
@@ -219,6 +219,63 @@ export default function Preview({ active, remove, background, portraitPadding, n
           // Imagen
           ctx.drawImage(weaponImg, badgeX + 7, badgeY + 7, badgeSize - 14, badgeSize - 14);
           ctx.restore();
+
+          // Número de refinamiento en esquina superior izquierda (solo si está habilitado)
+          if (showRefinementNumbers) {
+            const refinement = icon.weapon.refinement || 1;
+            const numberSize = 14;
+            const numberX = badgeX + 2;
+            const numberY = badgeY + 2;
+            
+            ctx.save();
+            
+            // Fondo del número
+            const numberBgWidth = 18;
+            const numberBgHeight = 16;
+            
+            if (refinement === 5) {
+              // Estilo especial para R5
+              ctx.fillStyle = '#E0855D';
+              ctx.shadowColor = 'rgba(224, 133, 93, 0.7)';
+              ctx.shadowBlur = 4;
+              
+              // Dibujar rectángulo redondeado de fondo
+              roundRect(ctx, numberX, numberY, numberBgWidth, numberBgHeight, 3);
+              ctx.shadowBlur = 0;
+            } else {
+              // Para R1-R4: degradado de fondo usando los colores de la imagen
+              const gradient = ctx.createLinearGradient(numberX, numberY, numberX + numberBgWidth, numberY + numberBgHeight);
+              gradient.addColorStop(0, '#0E0810'); // Color inicial
+              gradient.addColorStop(1, '#291636'); // Color final
+              ctx.fillStyle = gradient;
+              ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+              ctx.shadowBlur = 2;
+              
+              // Dibujar rectángulo redondeado de fondo con degradado
+              roundRect(ctx, numberX, numberY, numberBgWidth, numberBgHeight, 3);
+              ctx.shadowBlur = 0;
+            }
+            
+            // Texto del número
+            if (refinement === 5) {
+              ctx.fillStyle = '#F9EF6A'; // Color específico para R5
+            } else {
+              ctx.fillStyle = '#FFFFFF'; // Texto blanco para R1-R4
+            }
+            
+            ctx.font = `bold ${numberSize}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Sombra del texto para mejor legibilidad
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 2;
+            ctx.shadowOffsetX = 1;
+            ctx.shadowOffsetY = 1;
+            
+            ctx.fillText(refinement.toString(), numberX + numberBgWidth/2, numberY + numberBgHeight/2);
+            ctx.restore();
+          }
         }
       }
   

@@ -21,9 +21,10 @@ export interface PortraitIcon {
   note?: string
   others?: PortraitIcon[]
   artifacts?: PortraitIcon[]
-  weapon?: PortraitIcon
+  weapon?: PortraitIcon & { refinement?: number }
   rarity?: string
   rarityClass?: string
+  refinement?: number
 }
 
 const elements = [{
@@ -75,7 +76,9 @@ export default function PortraitGenerator({
     }],
     weapon: {
       name: "Staff_of_Homa",
-      path: `/portrait-chibi/img/weapons/icon_ascended/Staff_of_Homa.png`
+      path: `/portrait-chibi/img/weapons/icon_ascended/Staff_of_Homa.png`,
+      refinement: 5,
+      rarity: "5_star"
     }
   }] as PortraitIcon[])
   const [custom, setCustom] = useState([] as PortraitIcon[])
@@ -83,6 +86,23 @@ export default function PortraitGenerator({
   const [portraitPadding, setPortraitPadding] = useState(true)
   const [names, setNames] = useState(false)
   const [search, setSearch] = useState("")
+  const [selectedRefinement, setSelectedRefinement] = useState(1)
+  const [showRefinementNumbers, setShowRefinementNumbers] = useState(true)
+
+  // Atajos de teclado para refinamientos
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl + 1-5 para cambiar refinamiento rápidamente
+      if (event.ctrlKey && event.key >= '1' && event.key <= '5') {
+        event.preventDefault();
+        const refinementLevel = parseInt(event.key);
+        setSelectedRefinement(refinementLevel);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const iconsMisc = [
     {
@@ -203,8 +223,8 @@ export default function PortraitGenerator({
         setActive([...active.slice(0, active.length - 1), last])
         return
       } else if (isWeapon) {
-        // Solo un arma, reemplaza si ya hay
-        last.weapon = icon
+        // Solo un arma, reemplaza si ya hay y aplica refinamiento
+        last.weapon = { ...icon, refinement: selectedRefinement }
         setActive([...active.slice(0, active.length - 1), last])
         return
       }
@@ -243,6 +263,7 @@ export default function PortraitGenerator({
       background={background}
       portraitPadding={portraitPadding}
       names={names}
+      showRefinementNumbers={showRefinementNumbers}
     />
 
     <label>
@@ -297,6 +318,51 @@ export default function PortraitGenerator({
     </Tabs>
 
     <h2>Weapons</h2>
+    
+    {/* Controles de refinamiento junto a Weapons para mayor visibilidad */}
+    <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: '#14161A', borderRadius: '8px', border: '1px solid #033261ff' }}>
+      <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#a2acb6ff' }}>Weapon Refinement</h4>
+      <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
+        Selected refinement for new weapons: <strong>R{selectedRefinement}</strong>
+      </label>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+        {[1, 2, 3, 4, 5].map(level => (
+          <button
+            key={level}
+            onClick={() => setSelectedRefinement(level)}
+            style={{
+              padding: '8px 12px',
+              border: selectedRefinement === level ? '2px solid #007acc' : '1px solid #ccc',
+              borderRadius: '6px',
+              backgroundColor: selectedRefinement === level 
+                ? (level === 5 ? '#ffd700' : '#007acc') 
+                : '#f5f5f5',
+              color: selectedRefinement === level 
+                ? (level === 5 ? '#000' : '#fff') 
+                : '#333',
+              cursor: 'pointer',
+              fontWeight: selectedRefinement === level ? 'bold' : 'normal',
+              fontSize: '14px',
+              minWidth: '40px',
+              boxShadow: level === 5 && selectedRefinement === level 
+                ? '0 0 8px rgba(255, 215, 0, 0.5)' 
+                : 'none'
+            }}
+          >
+            R{level}
+          </button>
+        ))}
+      </div>
+      <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
+        <CheckboxInput set={setShowRefinementNumbers} value={showRefinementNumbers} />
+        {' '}Show refinement numbers on weapons
+      </label>
+      <p style={{ fontSize: '12px', color: '#b5b0b0ff', margin: '0' }}>
+         💡 Use <strong>Shift + click</strong> on weapon icons to apply the selected refinement level<br/>
+         ⌨️ Quick shortcuts: <strong>Ctrl + 1-5</strong> to change refinement level
+       </p>
+    </div>
+    
     <Tabs>
       {iconsWeapons.map(({ type, icons }) => {
         return <TabItem key={type} value={type} label={type}>
